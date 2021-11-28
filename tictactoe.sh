@@ -27,7 +27,7 @@ welcome_message() {
   sleep 1
 }
 print_board () {
-#   clear
+  clear
   echo "  *** BOARD ***"
   echo -e "    ${moves[0]} | ${moves[1]} | ${moves[2]} "
   echo "   -----------"
@@ -35,6 +35,9 @@ print_board () {
   echo "   -----------"
   echo -e "    ${moves[6]} | ${moves[7]} | ${moves[8]} "
   echo "============="
+  echo " "
+  echo "Press Ctrl + C to exit "
+
 }
 
 player_pick(){
@@ -63,7 +66,7 @@ player_pick(){
 }
 
 check_match() {
-  echo " ${moves[$1]}"
+  # echo " ${moves[$1]}"
   if  [[ ${moves[$1]} == ${moves[$2]} ]]&& \
       [[ ${moves[$2]} == ${moves[$3]} ]]; then
     game_on=false
@@ -105,11 +108,53 @@ check_winner(){
     echo "Its a draw!"
   fi
 }
+read_array(){
+  mapfile -t moves < ./.plik.txt
+  export ARRAY="${moves[$@]}"
+}
+
+run_game(){
+while $game_on
+do
+  trap term SIGINT
+  player_pick
+  print_board
+  check_winner
+done
+}
+
+term() {
+  printf "\n  Do you want to quit save your game? (yes/no) "
+  read CHOICE
+  if [ $CHOICE == "yes" ];then
+  # export OLD_GAME="${moves[$@]}"
+  # echo "${OLD_GAME}"
+  printf " %s " "${moves[@]}" > ./.plik.txt
+  exit 1
+  else exit 1 
+  # run_game
+  fi
+}
+
+  # perform cleanup - don't exit immediately
+
+
 
 welcome_message
+if [[ -f "./.plik.txt" ]];
+then
+    printf "You have unfinished game do you want to finish it? \n yes - for old game\n no - for new one\n:"
+    read GAME
+    if [ ${GAME} == "yes" ];then
+    read_array
+    moves=( ${ARRAY} )
+    # echo ${moves[$@]}
+    fi
+fi
 print_board
 while $game_on
 do
+  trap term SIGINT
   player_pick
   print_board
   check_winner
