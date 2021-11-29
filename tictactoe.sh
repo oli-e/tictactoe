@@ -1,8 +1,5 @@
 #!/usr/bin/bash
 
-# Do poprawienia
-# gdy wygrywasz w ostatnim ruchu to on uznaje to za DRAW
-# gdy wybierasz już wybrany kub to zwraca not valid
 
 ''' 
     Added colors:
@@ -11,8 +8,8 @@
         
         '''
 
-player_a="X" 
-player_b="O"
+player_a="\e[34mX\e[0m" 
+player_b="\e[35mO\e[0m"
 
 turn=1
 game_on=true
@@ -21,20 +18,22 @@ moves=( 1 2 3 4 5 6 7 8 9 )
 
 welcome_message() {
   clear
-  echo "******************************"
-  echo "*** WELCOME TO TIC TAC TOE ***"
-  echo "******************************"
+  echo -e "\e[32m******************************\e[0m"
+  echo -e "\e[32m *** The TIC TAC TOE Game ***\e[0m"
+  echo -e "\e[32m******************************\e[0m"
   sleep 1
 }
 print_board () {
   clear
-  echo "  *** BOARD ***"
-  echo -e "    ${moves[0]} | ${moves[1]} | ${moves[2]} "
-  echo "   -----------"
-  echo -e "    ${moves[3]} | ${moves[4]} | ${moves[5]} "
-  echo "   -----------"
-  echo -e "    ${moves[6]} | ${moves[7]} | ${moves[8]} "
-  echo "============="
+  welcome_message
+  echo " "
+  echo "      *** BOARD ***"
+  echo -e "        ${moves[0]} | ${moves[1]} | ${moves[2]} "
+  echo "       -----------"
+  echo -e "        ${moves[3]} | ${moves[4]} | ${moves[5]} "
+  echo "       -----------"
+  echo -e "        ${moves[6]} | ${moves[7]} | ${moves[8]} "
+  echo "      ============="
   echo " "
   echo "Press Ctrl + C to exit "
 
@@ -56,7 +55,7 @@ player_pick(){
 
   if [[ ! $square =~ ^-?[0-9]+$ ]] || [[ ! $space =~ ^[0-9]+$  ]]
   then 
-    echo "Not a valid square."
+    echo "Please enter a number of field."
     player_pick
   else
     moves[($square -1)]=$play
@@ -66,14 +65,12 @@ player_pick(){
 }
 
 check_match() {
-  # echo " ${moves[$1]}"
-  if  [[ ${moves[$1]} == ${moves[$2]} ]]&& \
-      [[ ${moves[$2]} == ${moves[$3]} ]]; then
+  if  [[ "${moves[$1]}" == "${moves[$2]}" ]]&& \
+      [[ "${moves[$2]}" == "${moves[$3]}" ]]; then
     game_on=false
   fi
   if [ $game_on == false ]; then
-    # echo " ${moves[$1]}"
-    if [ ${moves[$1]} == "x"  ];then
+    if [ ${moves[$1]} == "\e[34mX\e[0m"  ];then
       echo "Player A wins!"
       return 
     else
@@ -127,18 +124,12 @@ term() {
   printf "\n  Do you want to quit save your game? (yes/no) "
   read CHOICE
   if [ $CHOICE == "yes" ];then
-  # export OLD_GAME="${moves[$@]}"
-  # echo "${OLD_GAME}"
   printf " %s " "${moves[@]}" > ./.plik.txt
   exit 1
   else exit 1 
   # run_game
   fi
 }
-
-  # perform cleanup - don't exit immediately
-
-
 
 welcome_message
 if [[ -f "./.plik.txt" ]];
@@ -148,14 +139,14 @@ then
     if [ ${GAME} == "yes" ];then
     read_array
     moves=( ${ARRAY} )
-    # echo ${moves[$@]}
     fi
 fi
 print_board
 while $game_on
 do
-  trap term SIGINT
-  player_pick
-  print_board
-  check_winner
+  run_game
+  if [[ -f "./.plik.txt" ]];
+  then
+    rm ./.plik.txt
+  fi
 done
